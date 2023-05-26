@@ -1,0 +1,14 @@
+.idea
+.key
+.env
+node_modules
+yarn-error.log
+dist
+build
+.aptos
+*.log
+*.log.*
+*.yaml*
+.DS_Store
+0x*
+*.pri.json
