@@ -39,7 +39,13 @@ export class MultiRawSigner extends SignerWithProvider {
 
     static new(pubkeys: PublicKey[], weights: number[], threshold: number, provider: JsonRpcProvider): MultiRawSigner {
         if (pubkeys.length != weights.length) throw "pubkeys and weigths mismatch";
-        const weightSum = weights.reduce((sum, weight) => sum + weight);
+        let weightSum = 0;
+        weights.forEach(weight=>{
+            if(!Number.isInteger(weight)) throw "weight should be integer";
+            if(weight < 1) throw "weight too small";
+            if(weight > 255) throw "weight too large";
+            weightSum += weight;
+        });
         if (weightSum < threshold) "weightSum < threshold";
         if (threshold > 65535) throw "threshold too big";
         const pks = pubkeys.map((pubkey, index) => ({

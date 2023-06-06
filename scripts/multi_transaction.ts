@@ -22,7 +22,7 @@ async function faucet(to: string, provider: JsonRpcProvider = default_provider) 
 function createMultiAccount(ownerCount: number, threshold: number, provider: JsonRpcProvider = default_provider) {
     const keypairs = Array(ownerCount).fill(0).map(() => new Ed25519Keypair());
     const pks = keypairs.map(keypair=>keypair.getPublicKey());
-    const weights = pks.map((_,i)=>i);
+    const weights = pks.map(()=>1);
     const owners = keypairs.map(keypair=> new RawSigner(keypair, provider));
     return {
         multiSigner: MultiRawSigner.new(pks, weights, threshold, provider),
