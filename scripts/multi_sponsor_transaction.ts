@@ -55,21 +55,26 @@ const main = async () => {
     const owners = multiAccount.owners;
     const recipient = owners[0];
 
-    await faucet(await sender.getAddress());
+    const [senderAddress, sponsorAddress] = [await sender.getAddress(), await sponsor.getAddress()];
 
-    const senderCoin = await provider.getCoins({ owner: await sender.getAddress() });
+    await faucet(sponsorAddress);
+    await faucet(senderAddress);
+
+    const senderCoin = await provider.getCoins({ owner: senderAddress });
     const coinObjectIds = senderCoin.data.map(coin=>coin.coinObjectId);
 
     const tx = new TransactionBlock();
-    tx.transferObjects(coinObjectIds.slice(1).map(objId=>tx.object(objId)), tx.pure(await recipient.getAddress()));
-    tx.setSender(await sender.getAddress());
+    tx.transferObjects(coinObjectIds.map(objId=>tx.object(objId)), tx.pure(await recipient.getAddress()));
+    tx.setSender(senderAddress);
+    tx.setGasOwner(sponsorAddress);
     const txBytes = await tx.build({ provider });
     const ownerSigs = await Promise.all(owners.map(owner=>owner.signTransactionBlock({ transactionBlock: txBytes })));
     const senderSig = sender.combinePartialSigs(ownerSigs.map(ownerSig=>ownerSig.signature));
+    const sponsorSig = await sponsor.signTransactionBlock({ transactionBlock: txBytes });
 
     const result = await provider.executeTransactionBlock({
         transactionBlock: txBytes,
-        signature: senderSig,
+        signature: [senderSig, sponsorSig.signature],
         options: {
             showEffects: false,
             showBalanceChanges: true,
